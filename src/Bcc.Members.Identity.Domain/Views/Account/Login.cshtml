@@ -1,0 +1,89 @@
+@model LoginViewModel
+
+
+<partial name="_ValidationSummary" />
+
+@*<div class="loginWidget">
+    ¨
+    <div class="card  bg-light mb-3" style="width: 18em;">
+        <img src="https://a3e811289234f4ab3b16db2d.blob.core.windows.net/bcc-sso/BCC_logo.png" class="img-fluid" alt="Responsive image">
+        <div class="card-body">
+            <h5 id="infomessage1" class="card-title">New!!</h5>
+            <p id="infomessage" class="card-text">You can now login with your Telegram account </p>
+
+          
+            <div id="ProgressMessage" style="display: none;" display=none class="alert alert-primary" role="alert">
+                <div> We are logging you into via Telegram! Check your Telegram to respond.</div>
+                <div class="spinner-border text-primary" role="status">
+                    <span class="sr-only">Loading...</span>
+                </div>
+            </div>
+
+            @if (Model.Error)
+            {
+                <div class="alert alert-danger" role="alert">
+                    It looks like we don't have your number registered on your profile. Please go to your profile to update your mobile number, before logging in with Telegram again.'
+                    <a href="https://members.bcc.no/profile" class="btn btn-primary">Update you're profile here</a>
+                </div>
+            }
+
+        </div>
+    </div>
+</div>*@
+
+    <div class="row">
+        <div class="col-2 col-checkmark">
+            <img id="Completed1" style="display: none;" src="https://syncbrunstaddatatauth0.blob.core.windows.net/telegram-login-integration-logos/todo-done.png">
+            <img id="Un-Completed1" style="display: block;" src="https://syncbrunstaddatatauth0.blob.core.windows.net/telegram-login-integration-logos/todo-default.png" class="rounded-circle">
+        </div>
+        <div class="col-10">
+            <h5>Step 1. Connect to Telegram</h5>
+            <p>Go to Telegram and approve the sign in request</p>
+            <form id="login" asp-route="Login">
+                <input type="hidden" asp-for="ReturnUrl" />
+                <input type="hidden" class="form-control" placeholder="TelegramUserId" asp-for="TelegramUserId" autofocus>
+            </form>
+            <script async src="https://telegram.org/js/telegram-widget.js?7" data-telegram-login="@Model.TelegramBotName" data-size="large" data-onauth="onTelegramAuth(user)" data-request-access="write"></script>
+            <script type="text/javascript">
+            function onTelegramAuth(user) {
+                document.getElementById("TelegramUserId").value = user.id;
+                document.getElementById("Completed1").style.display = "block";
+                document.getElementById("Un-Completed1").style.display = "none";
+                document.getElementById("Completed2Botton").style.display = "block";
+                document.getElementById("telegram-login-@Model.TelegramBotName").style.display = "none";
+                document.getElementById("login").submit();
+            }
+            </script>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-2 col-checkmark">
+            <img id="Completed2" style="display: @(Model.ReceivedMobileNumber == true ? "block" : "none");" src="https://syncbrunstaddatatauth0.blob.core.windows.net/telegram-login-integration-logos/todo-done.png">
+            <img id="Un-Completed2" style="display:@(Model.ReceivedMobileNumber == true ? "none" : "block");" src="https://syncbrunstaddatatauth0.blob.core.windows.net/telegram-login-integration-logos/todo-default.png" class="rounded-circle">
+        </div>
+        <div class="col-10">
+            <h5>Step 2. Connect to BCC via Telegram</h5>
+            <div id="Completed2Botton" style="display:none;">
+                <p>You're almost there...</p>
+                <h5 style="color:#43b02a"><b>Go to Telegram again.</b></h5> @*<img style="width:8%;" src="https://syncbrunstaddatatauth0.blob.core.windows.net/telegram-login-integration-logos/grimacing-face_1f62c.png">*@ 
+                @*<a class="btn btn-primary Telegram-Button" target="_blank" href="https://t.me/@Model.TelegramBotName">Connect in Telegram</a>*@
+            </div>
+        </div>
+    </div>
+    <div class="row" style="display: @(Model.Error == true ? "block" : "none");">
+        <div class="col">
+            <div class="alert alert-danger" role="alert">
+                It looks like you have the wrong number registered in your profile. Please go to <a target="_blank" class="btn-default" href="https://members.bcc.no/profile">your profile</a> to update your mobile number, then try again in 10 minutes.
+            </div>
+        </div>
+    </div>
+
+
+    @if (!Model.EnableLocalLogin && !Model.VisibleExternalProviders.Any())
+    {
+        <div class="alert alert-warning">
+            <strong>Invalid login request</strong>
+            There are no login schemes configured for this client.
+        </div>
+    }
+

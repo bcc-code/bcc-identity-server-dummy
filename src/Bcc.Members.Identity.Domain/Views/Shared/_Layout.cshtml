@@ -1,0 +1,45 @@
+﻿@inject Microsoft.ApplicationInsights.AspNetCore.JavaScriptSnippet JavaScriptSnippet
+@using IdentityServer4.Extensions
+@{
+    string name = null;
+    if (!true.Equals(ViewData["signed-out"]))
+    {
+        name = Context.User?.GetDisplayName();
+    }
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BCC Sign-on</title>
+    <link rel="icon" type="image/x-icon" href="~/favicon.ico" />
+    <link rel="shortcut icon" type="image/x-icon" href="~/favicon.ico" />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous" />    
+    <link rel="stylesheet" href="~/css/style.css" />
+    @Html.Raw(JavaScriptSnippet.FullScript)
+</head>
+<body>
+
+    <div class="pane-container">
+        <div class="pane">
+            <div class="header">
+                <img class="logo" src="https://a3e811289234f4ab3b16db2d.blob.core.windows.net/bcc-sso/BCC_logo.png" alt="Brunstad Christian Church">
+            </div>
+            <div class="content">
+                @RenderBody()
+            </div>
+        </div>
+    </div>
+    <div class="footer">
+        <div class="content">
+            Please <a href="mailto:it@bcc.no?Subject=Login%20support%20&Body=Name%3A%0D%0A%0D%0AEmail%3A%0D%0A%0D%0ALocal%20church%3A%20%0D%0A%0D%0AMessage%3A%20%22login%20page%20support%22%0D%0A%0D%0A%0D%0APlease%20provide%20details%20about%20the%20problem%3A" target="_blank">contact support</a> if you have trouble.
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/jquery.js"></script>
+    <script src="~/lib/bootstrap/js/bootstrap.js"></script>
+    @RenderSection("scripts", required: false)
+</body>
+</html>

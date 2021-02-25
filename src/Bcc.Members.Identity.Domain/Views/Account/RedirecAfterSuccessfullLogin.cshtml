@@ -1,0 +1,31 @@
+@model RedirecAfterSuccessfullLoginModel
+
+
+<partial name="_ValidationSummary" />
+
+
+
+    <div class="row">
+       
+        <div class="col-12">
+            <div class="alert alert-success" role="alert">
+                We have everything we need, we are logging you in....
+            </div>
+            <form id="RedirecAfterSuccessfullLogin" asp-route="RedirecAfterSuccessfullLogin">
+                <input type="hidden" asp-for="ReturnUrl" />
+                <input type="hidden" asp-for="PersonId" />
+            </form>
+           
+            <script type="text/javascript">
+                document.addEventListener('DOMContentLoaded', function() {
+                    document.getElementById("RedirecAfterSuccessfullLogin").submit();
+                }, false);                            
+            </script>
+        </div>
+    </div>
+
+   
+
+
+   
+

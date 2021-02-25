@@ -1,0 +1,40 @@
+steps:
+  #merge client and server
+  - name: gcr.io/cloud-builders/docker
+    id: "build"
+    waitFor: ['-']
+    args:
+      [
+        "build",
+        "-f",
+        "dockerfile",
+        "-t",
+        "$_IMAGE_NAME",
+        ".",
+      ]        
+#push image
+  - name: gcr.io/cloud-builders/docker
+    id: "pushImage"
+    waitFor: ["build"]
+    args:
+      [
+        "push",    
+        "$_IMAGE_NAME"      
+      ]  
+  - name: 'gcr.io/cloud-builders/gcloud'
+    waitFor: ["pushImage"]
+    args:
+      - 'run'
+      - 'deploy'
+      - '$_ENVIRONMENT'
+      - '--image'
+      - '$_IMAGE_NAME'
+      - '--region'
+      - 'europe-west1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--port'
+      - '5000'  
+
+
