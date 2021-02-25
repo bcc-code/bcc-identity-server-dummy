@@ -1,7 +1,7 @@
 version: '3.3'
 services:
-    telegram-integration-image:
+    bcc-dummy-identity:
         container_name: bcc-identity
         ports:
             - '5000:5000'
-        image: bcc-identity-image
+        image: identity

@@ -1,8 +1,6 @@
 FROM mcr.microsoft.com/dotnet/core/sdk:3.1 AS build-env
 WORKDIR /app
 
-# Add Bcc.Members as a nuget source
-RUN dotnet nuget add source https://pkgs.dev.azure.com/bcc-its/_packaging/Bcc.Members/nuget/v3/index.json --name Bcc.Members --username docker-key --password 2i2pphlmqh3snncykonzzfwz7frehcx5pongacwgvxxs3yse7atq --store-password-in-clear-text
 
 # Copy project file over and restore as distinct layers
 COPY . ./
