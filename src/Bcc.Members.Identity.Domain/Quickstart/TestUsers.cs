@@ -2,53 +2,50 @@
 // Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
 
+using Bcc.Members.Identity.Domain.Quickstart.Users;
 using IdentityModel;
 using IdentityServer4.Test;
+using Microsoft.AspNetCore.Identity;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace IdentityServer4.Quickstart.UI
 {
     public class TestUsers
     {
-        public static List<TestUser> Users = new List<TestUser>
+        private readonly UserManager<AppUser> userManager;
+        public TestUsers(UserManager<AppUser> userManager)
         {
-            new TestUser{SubjectId = "818727", Username = "alice", Password = "alice", 
-                Claims = 
+            this.userManager = userManager;
+        }
+
+        public async Task AddRandomUsersToTheUserStore()
+        {
+            for (int i = 1; i < 6000; i++)
+            {
+                var user = new AppUser()
                 {
-                    new Claim(JwtClaimTypes.Name, "Alice Smith"),
-                    new Claim(JwtClaimTypes.GivenName, "Alice"),
-                    new Claim(JwtClaimTypes.FamilyName, "Smith"),
-                    new Claim(JwtClaimTypes.Email, "AliceSmith@email.com"),
-                    new Claim(JwtClaimTypes.EmailVerified, "true", ClaimValueTypes.Boolean),
-                    new Claim(JwtClaimTypes.WebSite, "http://alice.com"),
-                    new Claim(JwtClaimTypes.Address, @"{ 'street_address': 'One Hacker Way', 'locality': 'Heidelberg', 'postal_code': 69118, 'country': 'Germany' }", IdentityServer4.IdentityServerConstants.ClaimValueTypes.Json)
-                }
-            },
-            new TestUser{SubjectId = "88421113", Username = "bob", Password = "bob", 
-                Claims = 
-                {
-                    new Claim(JwtClaimTypes.Name, "Bob Smith"),
-                    new Claim(JwtClaimTypes.GivenName, "Bob"),
-                    new Claim(JwtClaimTypes.FamilyName, "Smith"),
-                    new Claim(JwtClaimTypes.Email, "BobSmith@email.com"),
-                    new Claim(JwtClaimTypes.EmailVerified, "true", ClaimValueTypes.Boolean),
-                    new Claim(JwtClaimTypes.WebSite, "http://bob.com"),
-                    new Claim(JwtClaimTypes.Address, @"{ 'street_address': 'One Hacker Way', 'locality': 'Heidelberg', 'postal_code': 69118, 'country': 'Germany' }", IdentityServer4.IdentityServerConstants.ClaimValueTypes.Json),
-                    new Claim("location", "somewhere")
-                }
-            },
-            new TestUser{SubjectId = "135719960v", Username = "philip.harmse@bcc.nov", Password = "135719960v",
-                Claims =
-                {
-                    new Claim(JwtClaimTypes.Name, "Philip Dalen"),
-                    new Claim(JwtClaimTypes.GivenName, "Philip"),
-                    new Claim(JwtClaimTypes.FamilyName, "Dalen"),
-                    new Claim(JwtClaimTypes.Email, "philip.harmse@bcc.nov"),
-                    new Claim(JwtClaimTypes.EmailVerified, "true", ClaimValueTypes.Boolean),
-                    new Claim(JwtClaimTypes.WebSite, "http://bob.com")                   
-                }
-            }
-        };
+                    Id = i.ToString("D5"),
+                    Email = $"testuser-{i.ToString("D5")}-@gmail.com",
+                    Password = "password",
+                    UserName = $"testuser-{i.ToString("D5")}-@gmail.com",
+                    churchId = "69",
+                    churchName = "Oslo/Follo",
+                    DateOfBirth = "1988-12-08T00:00:00",
+                    EmailConfirmed = true,
+                    hasMembership = true,
+                    Name = "Test User",
+                    FirstName = "Test",
+                    LastName = "User",
+                    personId = i.ToString("D5")                    
+                };
+                var identityResult = await userManager.CreateAsync(user);
+
+                Debug.Write($"Generated {user.personId} user \n");
+            };
+            
+        }
     }
 }

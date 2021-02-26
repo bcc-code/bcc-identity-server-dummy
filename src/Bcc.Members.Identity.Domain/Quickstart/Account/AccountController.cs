@@ -64,16 +64,21 @@ namespace IdentityServer4.Quickstart.UI
             // check if we are in the context of an authorization request
             var context = await _interaction.GetAuthorizationContextAsync(returnUrl);
 
-            var user = new AppUser()
+            AppUser user = null;
+            if (context.Client.ClientId == "RandomUser")
+            {                
+                while (user == null)
+                {
+                    Random r = new Random();
+                    var sub = r.Next(0, 6000).ToString("D5");
+                    user = await _userManager.FindByIdAsync(sub);
+                }                
+            }
+            else
             {
-                Id = "1232",
-                Email = "testuser@gmail.com",
-                Password = "password",
-                UserName = "philip.harmse@gmail.com"
-            };
-            var identityResult = await _userManager.CreateAsync(user);
+                user = await _userManager.FindByIdAsync("00001");
+            }
 
-            
             await _events.RaiseAsync(new UserLoginSuccessEvent(user.Email, user.Id, user.Email, clientId: context?.Client.ClientId));
 
             AuthenticationProperties props = null;

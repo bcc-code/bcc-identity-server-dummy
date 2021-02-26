@@ -10,6 +10,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Bcc.Members.Identity.Domain.Quickstart.Users;
 using Microsoft.AspNetCore.HttpOverrides;
+using IdentityServer4.Quickstart.UI;
+using System.Threading.Tasks;
 
 namespace Bcc.Members.Identity.Domain
 {
@@ -80,18 +82,22 @@ namespace Bcc.Members.Identity.Domain
                 options.ConfigureDbContext = builder => builder.UseInMemoryDatabase("MemoryBaseDataBase");
                 options.EnableTokenCleanup = true;
             })
-            .AddAspNetIdentity<AppUser>();
+            .AddAspNetIdentity<AppUser>()
+            .AddProfileService<ProfileService>();
 
 
             // in-memory, code config
             builder.AddInMemoryIdentityResources(Config.Ids);
             builder.AddInMemoryApiResources(Config.Apis);
             builder.AddInMemoryClients(Config.Clients);
-
-            // or in-memory, json config
-            //builder.AddInMemoryIdentityResources(Configuration.GetSection("IdentityResources"));
-            //builder.AddInMemoryApiResources(Configuration.GetSection("ApiResources"));
-            //builder.AddInMemoryClients(Configuration.GetSection("clients"));
+           
+            // Generate 6000 random users
+            var serviceCollection = new Microsoft.Extensions.DependencyInjection.ServiceCollection();
+            var sc = services.BuildServiceProvider();
+            var userManager = sc.GetService<UserManager<AppUser>>();
+            var testUser = new TestUsers(userManager);
+            Task.Run(() => testUser.AddRandomUsersToTheUserStore());
+            
 
             // not recommended for production - you need to store your key material somewhere secure
             builder.AddDeveloperSigningCredential();
