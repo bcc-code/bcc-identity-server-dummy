@@ -15,6 +15,5 @@ namespace Bcc.Members.Identity.Domain.Quickstart.Users
 
         public string churchId { get; set; }
         public string churchName { get; set; }
-
     }
 }
