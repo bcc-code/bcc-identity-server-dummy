@@ -5,6 +5,7 @@
 using IdentityServer4;
 using IdentityServer4.Models;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Bcc.Members.Identity.Domain
 {
@@ -15,7 +16,8 @@ namespace Bcc.Members.Identity.Domain
             {
                 new IdentityResources.OpenId(),
                 new IdentityResources.Profile(),
-                new IdentityResources.Email()
+                new IdentityResources.Email(),
+                new IdentityResource("church",new List<string>(){"churchId"})
             };
 
 
@@ -24,8 +26,7 @@ namespace Bcc.Members.Identity.Domain
             {
                 new ApiResource("api1", "My API #1")
             };
-
-
+     
         public static IEnumerable<Client> Clients =>
             new Client[]
             {
@@ -88,55 +89,61 @@ namespace Bcc.Members.Identity.Domain
                 new Client
                 {
                     ClientId = "RandomUser",
-                    ClientSecrets = { new Secret("mvJu3x$ok%q*f@$0uUCB".Sha256()) },
+                    ClientSecrets = { new Secret("RandomUser".Sha256()) },
 
-                    AllowedGrantTypes = GrantTypes.Hybrid,
+                    AllowedGrantTypes = 
+                    {
+                        GrantType.AuthorizationCode,                        
+                        GrantType.ClientCredentials,                                                
+                        GrantType.ResourceOwnerPassword                        
+                    },                    
                     RequireConsent = false,
                     RequirePkce = false,
                     AlwaysIncludeUserClaimsInIdToken = true,
                     RequireClientSecret = false,
-                    AllowAccessTokensViaBrowser = true,
+                    AllowAccessTokensViaBrowser = true,               
                     
 
-                    
-                    // where to redirect to after login
                     RedirectUris = { "https://devlogin.bcc.no/login/callback","https://login.bcc.no/login/callback", "https://bcc-sso.eu.auth0.com/login/callback", "https://bcc-sso-dev.eu.auth0.com/login/callback" },
 
-                    // where to redirect to after logout
                     PostLogoutRedirectUris = { "http://localhost:5002/signout-callback-oidc","https://bcc-telegram-login.azurewebsites.net/signout-callback-oidc" },
 
                     AllowedScopes = new List<string>
                     {
                         IdentityServerConstants.StandardScopes.OpenId,
                         IdentityServerConstants.StandardScopes.Profile,
-                        IdentityServerConstants.StandardScopes.Email
+                        IdentityServerConstants.StandardScopes.Email,
+                        "church"
                     }                    
                 },
                 new Client
                 {
                     ClientId = "SameUser",
-                    ClientSecrets = { new Secret("mvJu3x$ok%q*f@$0uUCB".Sha256()) },
+                    ClientSecrets = { new Secret("RandomUser".Sha256()) },
 
-                    AllowedGrantTypes = GrantTypes.Hybrid,
+                    AllowedGrantTypes =
+                    {
+                        GrantType.AuthorizationCode,
+                        GrantType.ClientCredentials,
+                        GrantType.ResourceOwnerPassword
+                    },
                     RequireConsent = false,
                     RequirePkce = false,
                     AlwaysIncludeUserClaimsInIdToken = true,
                     RequireClientSecret = false,
                     AllowAccessTokensViaBrowser = true,
-                    
-
-                    
-                    // where to redirect to after login
+                                     
+                   
                     RedirectUris = { "https://devlogin.bcc.no/login/callback","https://login.bcc.no/login/callback", "https://bcc-sso.eu.auth0.com/login/callback", "https://bcc-sso-dev.eu.auth0.com/login/callback" },
 
-                    // where to redirect to after logout
                     PostLogoutRedirectUris = { "http://localhost:5002/signout-callback-oidc","https://bcc-telegram-login.azurewebsites.net/signout-callback-oidc" },
 
                     AllowedScopes = new List<string>
                     {
                         IdentityServerConstants.StandardScopes.OpenId,
                         IdentityServerConstants.StandardScopes.Profile,
-                        IdentityServerConstants.StandardScopes.Email
+                        IdentityServerConstants.StandardScopes.Email,
+                        "church"
                     }
                 }
             };
