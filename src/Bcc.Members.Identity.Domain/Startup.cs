@@ -135,10 +135,11 @@ namespace Bcc.Members.Identity.Domain
             app.UseRouting();
             app.UseIdentityServer();
 
-            // uncomment, if you want to add MVC
+            app.UseAuthentication();
             app.UseAuthorization();
             app.UseEndpoints(endpoints =>
             {
+                endpoints.MapControllers();
                 endpoints.MapDefaultControllerRoute();
             });
         }
