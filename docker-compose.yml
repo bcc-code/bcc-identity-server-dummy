@@ -1,7 +1,0 @@
-version: '3.3'
-services:
-    bcc-dummy-identity:
-        container_name: bcc-identity
-        ports:
-            - '5000:5000'
-        image: identity
