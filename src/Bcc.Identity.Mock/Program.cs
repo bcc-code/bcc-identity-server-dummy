@@ -5,6 +5,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddMemoryCache();
 
 builder.Services.AddAuthorization();
+builder.AddBccPlatform();
+
 
 builder.Services.AddIdentityServer(options =>
 {
@@ -25,8 +27,7 @@ builder.Services.AddIdentityServer(options =>
 .AddInMemoryIdentityResources(Config.IdentityResources(builder.Configuration))
 .AddInMemoryApiScopes(Config.ApiScopes(builder.Configuration))
 .AddInMemoryClients(Config.Clients(builder.Configuration))
-.AddProfileService<JustAddAllClaimsProfileService>()
-.AddServerSideSessions();
+.AddProfileService<JustAddAllClaimsProfileService>();
 
 var app = builder.Build();
 

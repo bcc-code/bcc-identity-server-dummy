@@ -2,9 +2,11 @@
 <html>
 <head>
     <meta charset="utf-8"/>
-    <title>Logout</title>
+    <title>BCC OIDC Mock - Logout</title>
     <script src="tailwind.js"></script>
     <script src="vue.global.js"></script>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    
 </head>
 <body>
 <div id="app" class="collapse">
@@ -34,7 +36,7 @@
             </h1>
 
             <div>
-                Klikk <a href="https://localhost:15000" class="underline">her</a> for å returnere til applikasjonen.
+                Klikk <a :href="postLogoutRedirectUri" class="underline">her</a> for å returnere til applikasjonen.
             </div>
 
             <div v-if="hackyRedirectBackToApp">
@@ -94,7 +96,7 @@
                 }
             }
 
-            logout()
+            //logout()
 
             return {
                 logoutId,

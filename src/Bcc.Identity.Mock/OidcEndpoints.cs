@@ -49,27 +49,28 @@ public static class OidcEndpoints
         var response = new LoginResponse();
 
         var url = model.ReturnUrl != null ? Uri.UnescapeDataString(model.ReturnUrl) : null;
-
+        
         var authzContext = await interaction.GetAuthorizationContextAsync(url);
         response.ValidReturnUrl = authzContext != null ? url : serverUrls.BaseUrl;
 
-        var user = new IdentityServerUser(model.Email)
+        var user = new IdentityServerUser(model.PersonUid)
         {
-            DisplayName = model.Email,
+            DisplayName = model.Name,
             AdditionalClaims = new List<Claim>()
             {
-                new(JwtClaimTypes.Name, model.Email),
+                new(JwtClaimTypes.Name, model.Name),
                 new(JwtClaimTypes.Email, model.Email),
+                new("https://login.bcc.no/claims/personUid", model.PersonUid)
             }
         };
 
-        AuthenticationProperties props = new AuthenticationProperties()
+        var props = new AuthenticationProperties()
         {
             IsPersistent = true,
-            ExpiresUtc = DateTimeOffset.UtcNow.AddHours(5),
+            ExpiresUtc = DateTimeOffset.UtcNow.Add(TimeSpan.FromDays(7))
         };
         await context.SignInAsync(user, props);
-
+        
         return Results.Ok(response);
     }
 
@@ -87,7 +88,7 @@ public static class OidcEndpoints
 
         return Results.BadRequest();
     }
-
+    
     public static async Task<IResult> PostLogout(string logoutId, IIdentityServerInteractionService interaction, HttpContext context)
     {
         var logoutInfo = await interaction.GetLogoutContextAsync(logoutId);
@@ -100,7 +101,7 @@ public static class OidcEndpoints
         });
     }
 
-
+    
     private static async Task<IResult> Logout(string? logoutId, IIdentityServerInteractionService interaction, HttpContext context)
     {
         try
@@ -113,11 +114,11 @@ public static class OidcEndpoints
 
                 return Results.Ok(new
                 {
-                    postLogoutRedirectUri = logoutInfo.PostLogoutRedirectUri ?? "https://localhost:15000",
+                    postLogoutRedirectUri = logoutInfo.PostLogoutRedirectUri ?? "https://localhost:13000",
                 });
             }
         }
-        catch (Exception e)
+        catch (Exception)
         {
             // ignored
         }
@@ -128,15 +129,17 @@ public static class OidcEndpoints
         });
     }
 
-    private static async Task<IResult> Diagnostics(HttpContext context)
+    private static async Task<DiagnosticsDto> Diagnostics(HttpContext context)
     {
-        return Results.Ok(new DiagnosticsDto(await context.AuthenticateAsync()));
+        return new DiagnosticsDto(await context.AuthenticateAsync());
     }
 }
 
 public class LoginRequest
 {
-    public string Email { get; set; }
+    public required string Email { get; set; }
+    public required string PersonUid { get; set; }
+    public required string Name { get; set; }
     public string? ReturnUrl { get; set; }
 }
 

@@ -5,8 +5,10 @@
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
         <Nullable>enable</Nullable>
         <TargetFramework>net10.0</TargetFramework>
+        <UserSecretsId>e12159ec-5c26-48c7-9467-d0e81af2361d</UserSecretsId>
     </PropertyGroup>
     <ItemGroup>
+        <PackageReference Include="BccCode.Core.Api.Client" Version="0.0.1929" />
         <PackageReference Include="Duende.IdentityServer" Version="7.4.5" />
     </ItemGroup>
 </Project>

@@ -42,7 +42,7 @@ public static class Config
                 ClientId = clientSettings.ClientId,
                 ClientSecrets =
                 [
-                    new Secret(clientSettings.Secret)
+                    new Secret(clientSettings.Secret.Sha256())
                 ],
                 RedirectUris = clientSettings.RedirectUris,
                 PostLogoutRedirectUris = clientSettings.RedirectUris,

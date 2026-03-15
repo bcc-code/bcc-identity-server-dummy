@@ -2,71 +2,76 @@
 <html>
 <head>
     <meta charset="utf-8"/>
-    <title>Login</title>
+    <title>BCC OIDC Mock - Login</title>
     <script src="tailwind.js"></script>
     <script src="vue.global.js"></script>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 </head>
 <body>
 <div id="app">
-    <div class="min-h-screen flex flex-col items-center justify-center p-4 bg-gray-100">
-        <div class="flex w-full max-w-5xl bg-red-500 justify-end">
-            <img src="bg.png" class="object-contain h-48 -mt-48"/>
+    <div class="min-h-screen flex flex-col items-center justify-center bg-gray-100">
+        <div class="flex lg:min-w-2xl justify-end invisible lg:visible">
+            <img class="h-48 -mt-48" src="bg.png"/>
         </div>
-        
-        <div class="flex flex-col w-full max-w-3xl bg-white rounded-lg shadow-md p-6 gap-3">
-            <h1 class="text-3xl">BCC Auth Mock</h1>
-            <div class="grid grid-cols-2 gap-3">
-                
-                <!-- Organization Selection -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-700" for="organization">Choose Organization</label>
-                    <select
-                            @change="onOrganizationChange"
-                            class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                            id="organization"
-                            size="12"
-                            v-model="selectedOrganizationId"
-                    >
-                        <option :key="organization.name" :value="organization.name" v-for="organization in organizations">
-                            {{ organization.name }}
-                        </option>
-                    </select>
+
+        <form @submit.prevent="handleLogin">
+
+            <div class="flex flex-col w-full lg:min-w-2xl bg-white rounded-lg shadow-md p-6 gap-3">
+                <h1 class="text-3xl">BCC Test-innlogging</h1>
+                <div class="grid lg:grid-cols-2 gap-3">
+                    <!-- Organization Selection -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700" for="organization">Velg Organization</label>
+                        <select
+                                @change="onOrganizationChange"
+                                class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                                id="organization"
+                                size="12"
+                                v-model="selectedOrganizationId"
+                        >
+                            <!--                        <option disabled value="">Select a Organization</option>-->
+                            <option :key="organization.name" :value="organization.name"
+                                    v-for="organization in organizationer">
+                                {{ organization.name }}
+                            </option>
+                        </select>
+                    </div>
+
+
+                    <!-- person Selection -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700" for="person">Velg person</label>
+                        <select
+                                class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                                id="person"
+                                size="12"
+                                v-model="selectedPersonId"
+                        >
+                            <!--                        <option disabled value="">Select a person</option>-->
+                            <option :key="person.name" :value="person.name" v-for="person in selectedOrganization.persons">
+                                {{ person.name }}
+                            </option>
+                        </select>
+                    </div>
                 </div>
 
-                <!-- Role Selection -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-700" for="role">Choose Role</label>
-                    <select
-                            class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                            id="role"
-                            size="12"
-                            v-model="selectedRoleId"
+                <div class="flex justify-between items-center mt-1 w-full px-3 py-2  border border-gray-300 rounded-md shadow-sm">
+                    <div class="">
+                        <p>{{ selectedPerson?.name ?? '&nbsp;' }}</p>
+                        <p>{{ selectedPerson?.email ?? '&nbsp;' }}</p>
+                        <p>{{ selectedPerson?.personUid ?? '&nbsp;' }}</p>
+                    </div>
+                    <button
+                            class="py-2 px-4 text-white bg-indigo-600 rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                            type="submit"
                     >
-                        <option :key="role.name" :value="role.name" v-for="role in selectedOrganization.roles">
-                            {{ role.name }}
-                        </option>
-                    </select>
+                        Logg inn
+                    </button>
                 </div>
 
             </div>
-            <form @submit.prevent="handleLogin" class="flex flex-col">
-                <label class="block text-sm font-medium text-gray-700" for="email">Email</label>
-                <div class="mb-4 flex gap-2 pt-2">
-                    <input
-                            class="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                            id="email"
-                            required
-                            v-model="email"
-                    />
-                </div>
-                <button
-                        class="py-2 px-4 text-white bg-indigo-600 rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                        type="submit"
-                >
-                    Log in
-                </button>
-            </form>
-        </div>
+        </form>
+
     </div>
 </div>
 <script>
@@ -74,31 +79,31 @@
 
     createApp({
         setup() {
-            const email = ref('')
-            
-            const organizations = ref([])
+            const organizationer = ref([])
+            fetch("/persons").then(async r => {
+                organizationer.value = await r.json()
+                selectedOrganizationId.value = organizationer.value[0].name
+                selectedPersonId.value = selectedOrganization.value.persons[0].name
+            })
+
             const selectedOrganizationId = ref()
-            const selectedGruppeId = ref()
-            const selectedRoleId = ref('Administrator')
-            
+            const selectedPersonId = ref()
+
             const selectedOrganization = computed(() => {
-                return organizations.value.find(f => f.name === selectedOrganizationId.value) || {roles: []}
+                return organizationer.value.find(f => f.name === selectedOrganizationId.value) || {persons: []}
             })
-            const selectedRole = computed(() => {
-                return selectedOrganization.value.roles.find(r => r.name === selectedRoleId.value)
-            })
-            
-            fetch("/roles").then(async r => {
-                organizations.value = await r.json()
-                selectedOrganizationId.value = organizations.value[0].value
-                selectedRoleId.value = selectedOrganization.value.roles.length > 0 ? selectedOrganization.value.roles[0].name : ''
+
+            const selectedPerson = computed(() => {
+                return selectedOrganization.value.persons.find(r => r.name === selectedPersonId.value)
             })
 
             function onOrganizationChange() {
-                selectedRoleId.value = selectedOrganization.value.roles.length > 0 ? selectedOrganization.value.roles[0].name : ''
+                selectedPersonId.value = selectedOrganization.value.persons.length > 0 ? selectedOrganization.value.persons[0].name : ''
             }
 
-            watch(selectedRole, role => email.value = role?.email)
+            watch(selectedPerson, person => personUid.value = person?.personUid)
+
+            const personUid = ref('')
 
             async function handleLogin() {
                 let idx = location.href.toLowerCase().indexOf("?returnurl=");
@@ -108,7 +113,9 @@
                 }
 
                 let body = {
-                    email: email.value,
+                    email: selectedPerson.value.email,
+                    personUid: personUid.value,
+                    name: selectedPerson.value.name,
                     returnUrl: returnUrl,
                 };
 
@@ -131,24 +138,20 @@
 
                 }
             }
-            
-            return {
-                email,
-                organizations,
-                selectedOrganization,
-                selectedRole,
-                
-                selectedOrganizationId,
-                selectedGruppeId,
-                selectedRoleId,
-                
-                onOrganizationChange,
 
+            return {
+                personUid,
+                organizationer,
+                selectedOrganizationId,
+                selectedPersonId,
+                selectedOrganization,
+                selectedPerson,
                 handleLogin,
-                
+                onOrganizationChange,
             }
         }
     }).mount('#app')
 </script>
+
 </body>
 </html>
