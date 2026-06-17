@@ -11,12 +11,12 @@ public record OidcRequestContext(string? ClientId, string? LoginHint, string[] S
 
         var uri = BuildUri(returnUrl);
         var query = QueryHelpers.ParseQuery(uri.Query);
-        var scopes = query["scope"].ToString()
+        var scopes = Get(query, "scope")
             .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
         return new OidcRequestContext(
-            query["client_id"].ToString(),
-            query["login_hint"].ToString(),
+            Get(query, "client_id"),
+            Get(query, "login_hint"),
             scopes);
     }
 
@@ -33,6 +33,9 @@ public record OidcRequestContext(string? ClientId, string? LoginHint, string[] S
             ? decoded
             : "/";
     }
+
+    private static string Get(Dictionary<string, Microsoft.Extensions.Primitives.StringValues> query, string key) =>
+        query.TryGetValue(key, out var value) ? value.ToString() : string.Empty;
 
     private static Uri BuildUri(string returnUrl)
     {
