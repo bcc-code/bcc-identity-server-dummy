@@ -1,0 +1,63 @@
+- main [ref=e2]:
+  - generic [ref=e3]:
+    - img "BCC" [ref=e4]
+    - generic [ref=e5]:
+      - heading "BCC Test-innlogging" [level=1] [ref=e6]
+      - paragraph [ref=e7]: Velg organisasjon og person for å starte en mock OIDC-session.
+    - generic [ref=e8]:
+      - generic [ref=e9]:
+        - generic [ref=e10]:
+          - generic [ref=e11]: Velg organisasjon
+          - listbox "Velg organisasjon" [ref=e12]:
+            - option "A Team Oslo" [selected] [ref=e13]
+            - option "BCC Drammen" [ref=e14]
+            - option "BCC Eiker" [ref=e15]
+            - option "BCC Grenland" [ref=e16]
+            - option "BCC Hallingdal" [ref=e17]
+            - option "BCC Hawaii" [ref=e18]
+            - option "BCC Lokalmenighet" [ref=e19]
+            - option "BCC Malinka" [ref=e20]
+            - option "BCC Maubach" [ref=e21]
+            - option "BCC Melbourne" [ref=e22]
+            - option "BCC Nierodzim" [ref=e23]
+            - option "BCC Official Poland" [ref=e24]
+            - option "BCC Oslo" [ref=e25]
+            - option "BCC Salem" [ref=e26]
+            - option "BCC South Africa" [ref=e27]
+            - option "BCC Twente" [ref=e28]
+            - option "BCC Tønsberg" [ref=e29]
+            - option "BCC Uganda" [ref=e30]
+            - option "BCC Vancouver" [ref=e31]
+            - option "BCC Wonderland" [ref=e32]
+            - option "Cherkassy" [ref=e33]
+            - option "Church of England" [ref=e34]
+            - option "Connecticut" [ref=e35]
+            - option "DCG Fulda" [ref=e36]
+            - option "Flevoland" [ref=e37]
+            - option "Horten" [ref=e38]
+            - option "Kraków" [ref=e39]
+            - option "Linnenbach" [ref=e40]
+            - option "Opus Church" [ref=e41]
+            - option "Orginn" [ref=e42]
+            - option "Oslo/Follo" [ref=e43]
+            - option "Samvirk 1" [ref=e44]
+            - option "Samvirk 2" [ref=e45]
+            - option "Samvirk 3" [ref=e46]
+            - option "Seattle" [ref=e47]
+            - option "Tønsbarg" [ref=e48]
+            - option "Vanderbijlpark" [ref=e49]
+            - option "Waltrop" [ref=e50]
+        - generic [ref=e51]:
+          - generic [ref=e52]: Velg person
+          - listbox "Velg person" [ref=e53]:
+            - option "Adi Nice" [selected] [ref=e54]
+            - option "Batie Sofa Daly" [ref=e55]
+            - option "test child" [ref=e56]
+      - generic [ref=e58]:
+        - heading "Adi Nice" [level=2] [ref=e59]
+        - paragraph [ref=e60]: adi.nice@bcc.no
+        - paragraph [ref=e61]: 7e590851-05c9-411e-8270-8c14fe01145b
+      - generic [ref=e62]:
+        - button "Logg inn" [ref=e63] [cursor=pointer]
+        - link "Tilbake" [ref=e64] [cursor=pointer]:
+          - /url: /

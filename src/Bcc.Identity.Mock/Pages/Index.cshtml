@@ -1,0 +1,15 @@
+@page "/"
+@{
+    ViewData["Title"] = "Forside";
+}
+
+<div class="card-header">
+    <h1>Velkommen til BCC Auth Mock</h1>
+</div>
+
+<nav class="link-list">
+    <a class="link-row" target="_blank" href="/.well-known/openid-configuration">Discovery document</a>
+    <a class="link-row" asp-page="/Login">Logg inn</a>
+    <a class="link-row" asp-page="/Logout">Logg ut</a>
+    <a class="link-row" href="/spa/diagnostics">Diagnostics</a>
+</nav>

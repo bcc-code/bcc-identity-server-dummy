@@ -1,45 +1,82 @@
-﻿using Bcc.Identity.Mock;
+using Bcc.Identity.Mock;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddMemoryCache();
-
 builder.Services.AddAuthorization();
+builder.Services.AddRazorPages();
 builder.AddBccPlatform();
+builder.Services.AddSingleton<LogoutContextStore>();
 
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/login";
+        options.LogoutPath = "/logout";
+        options.ExpireTimeSpan = TimeSpan.FromDays(7);
+        options.Cookie.SameSite = SameSiteMode.Lax;
+        options.Cookie.HttpOnly = true;
+        options.SlidingExpiration = true;
+    });
 
-builder.Services.AddIdentityServer(options =>
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
-    options.Authentication.CookieSameSiteMode = SameSiteMode.Lax;
-    options.Authentication.CheckSessionCookieSameSiteMode = SameSiteMode.Lax;
+    options.UseInMemoryDatabase("openiddict-mock");
+    options.UseOpenIddict();
+});
 
-    options.UserInteraction.LoginUrl = "/login.html";
-    options.UserInteraction.LogoutUrl = "/logout.html";
-    options.UserInteraction.ErrorUrl = "/error.html";
+builder.Services.AddOpenIddict()
+    .AddCore(options =>
+    {
+        options.UseEntityFrameworkCore()
+               .UseDbContext<ApplicationDbContext>();
+    })
+    .AddServer(options =>
+    {
+        options.SetAuthorizationEndpointUris("/connect/authorize")
+               .SetTokenEndpointUris("/connect/token")
+               .SetUserInfoEndpointUris("/connect/userinfo")
+               .SetEndSessionEndpointUris("/connect/endsession");
 
-    options.Events.RaiseErrorEvents = true;
-    options.Events.RaiseFailureEvents = true;
-    options.Events.RaiseFailureEvents = true;
-    options.Events.RaiseSuccessEvents = true;
+        options.AllowAuthorizationCodeFlow()
+               .AllowRefreshTokenFlow()
+               .AllowClientCredentialsFlow();
 
-    options.EmitStaticAudienceClaim = true;
-})
-.AddInMemoryIdentityResources(Config.IdentityResources(builder.Configuration))
-.AddInMemoryApiScopes(Config.ApiScopes(builder.Configuration))
-.AddInMemoryClients(Config.Clients(builder.Configuration))
-.AddProfileService<JustAddAllClaimsProfileService>();
+        options.RegisterScopes(OpenIddictMockConfiguration.GetRegisteredScopes(builder.Configuration));
+        options.DisableAccessTokenEncryption();
+        options.AddEphemeralEncryptionKey()
+               .AddEphemeralSigningKey();
+
+        options.UseAspNetCore()
+               .EnableAuthorizationEndpointPassthrough()
+               .EnableTokenEndpointPassthrough()
+               .EnableUserInfoEndpointPassthrough()
+               .EnableEndSessionEndpointPassthrough();
+    })
+    .AddValidation(options =>
+    {
+        options.UseLocalServer();
+        options.UseAspNetCore();
+    });
+
+builder.Services.AddHostedService<ClientSeeder>();
 
 var app = builder.Build();
 
 app.UseDeveloperExceptionPage();
-
-app.UseDefaultFiles();
 app.UseStaticFiles();
-
 app.UseRouting();
-app.UseIdentityServer();
+app.UseAuthentication();
 app.UseAuthorization();
 
+await using (var scope = app.Services.CreateAsyncScope())
+{
+    await scope.ServiceProvider.GetRequiredService<ApplicationDbContext>().Database.EnsureCreatedAsync();
+}
+
+app.MapRazorPages();
 app.MapOidcEndpoints();
 app.MapUserRoleEndpoint();
 

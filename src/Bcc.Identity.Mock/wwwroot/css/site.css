@@ -1,0 +1,297 @@
+:root {
+  color-scheme: light;
+  --background: #f7f7f5;
+  --surface: #ffffff;
+  --border: #d8d8d3;
+  --text: #1f1f1c;
+  --muted: #5f5f58;
+  --accent: #376bb8;
+  --accent-hover: #2e5a8a;
+  --success-background: #f2f7f2;
+  --error-background: #fbf1f0;
+  --font-stack: 'Segoe UI', 'Aptos', sans-serif;
+  --radius: 10px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  background: var(--background);
+  color: var(--text);
+  font-family: var(--font-stack);
+  line-height: 1.5;
+}
+
+a {
+  color: var(--accent);
+}
+
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgb(243 244 246);
+  padding: 1rem;
+}
+
+.page-card {
+  width: min(980px, 100%);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px;
+}
+
+.brand-mark {
+  display: flex;
+  width: 100%;
+  justify-content: flex-end;
+}
+
+.brand-image {
+  object-fit: contain;
+  height: 12rem;
+  margin-top: -12rem;
+}
+
+.card-header,
+.form-stack,
+.result-stack,
+.link-list,
+.status-card,
+.alert {
+  margin: 0;
+}
+
+h1,
+h2,
+p {
+  margin-top: 0;
+}
+
+h1 {
+  margin-bottom: 8px;
+  font-size: clamp(1.8rem, 3vw, 2.4rem);
+  line-height: 1.15;
+}
+
+h2 {
+  margin-bottom: 8px;
+  font-size: 1.1rem;
+}
+
+.lede,
+.eyebrow {
+  color: var(--muted);
+}
+
+.eyebrow {
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.lede {
+  max-width: 54ch;
+  margin-bottom: 0;
+}
+
+.link-list {
+  display: grid;
+  gap: 10px;
+  padding-top: 24px;
+}
+
+.link-row {
+  display: block;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.link-row:hover,
+.link-row:focus-visible {
+  background: #f3f3f0;
+  outline: none;
+}
+
+.form-stack {
+  display: grid;
+  gap: 20px;
+  padding-top: 24px;
+}
+
+.narrow-stack {
+  max-width: 520px;
+}
+
+.selector-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.selector-grid--two-columns {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.field-group {
+  display: grid;
+  gap: 6px;
+}
+
+.field-group label {
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.field-group select,
+.primary-button,
+.secondary-link {
+  border-radius: 8px;
+  font: inherit;
+}
+
+.field-group select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--text);
+  min-height: 280px;
+}
+
+.field-group select:focus,
+.primary-button:focus,
+.secondary-link:focus {
+  outline: 2px solid rgba(0, 0, 0, 0.12);
+  outline-offset: 2px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.primary-button,
+.secondary-link {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 42px;
+  padding: 0 16px;
+  border: 1px solid transparent;
+  text-decoration: none;
+}
+
+.primary-button {
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+}
+
+.primary-button:hover,
+.primary-button:focus-visible {
+  background: var(--accent-hover);
+}
+
+.secondary-link {
+  background: transparent;
+  border-color: var(--border);
+  color: var(--text);
+}
+
+.alert,
+.status-card {
+  padding: 14px 16px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+
+.alert {
+  margin-top: 20px;
+  background: #faf7f2;
+}
+
+.status-card {
+  background: #fafafa;
+}
+
+.success-state {
+  background: var(--success-background);
+}
+
+.error-state {
+  background: var(--error-background);
+}
+
+.result-stack {
+  display: grid;
+  gap: 16px;
+  padding-top: 24px;
+}
+
+.person-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.person-id {
+  font-family: Consolas, 'Courier New', monospace;
+  font-size: 0.92rem;
+  color: var(--muted);
+  word-break: break-all;
+}
+
+.validation-message {
+  color: #8a2f28;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 900px) {
+  .selector-grid,
+  .selector-grid--two-columns {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .app-shell {
+    padding: 16px 10px;
+  }
+
+  .page-card {
+    padding: 18px;
+  }
+
+  .brand-image {
+    width: 120px;
+  }
+
+  .field-group select {
+    min-height: 180px;
+  }
+
+  .actions,
+  .person-summary {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

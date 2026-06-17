@@ -1,0 +1,135 @@
+@page "/login"
+@model Bcc.Identity.Mock.Pages.LoginModel
+@{
+    ViewData["Title"] = "Logg inn";
+}
+
+<div class="card-header">
+    <h1>BCC Test-innlogging</h1>
+    <p class="lede">Velg organisasjon og person for å starte en mock OIDC-session.</p>
+</div>
+
+@if (!ViewContext.ModelState.IsValid)
+{
+    <div class="alert" role="alert">
+        <p>Innloggingen kunne ikke fullføres.</p>
+        <div asp-validation-summary="All"></div>
+    </div>
+}
+
+<form method="post" class="form-stack">
+    <input asp-for="ReturnUrl" type="hidden" />
+    <input asp-for="PersonUid" type="hidden" id="person-uid" />
+
+    <div class="selector-grid selector-grid--two-columns">
+        <div class="field-group">
+            <label for="organization-select">Velg organisasjon</label>
+            <select id="organization-select" size="12"></select>
+        </div>
+
+        <div class="field-group">
+            <label for="person-select">Velg person</label>
+            <select id="person-select" size="12"></select>
+        </div>
+    </div>
+
+    <div class="status-card person-summary">
+        <div>
+            <h2 id="person-name">Ingen person valgt</h2>
+            <p id="person-email">Velg en person fra listen.</p>
+            <p id="person-id" class="person-id"></p>
+        </div>
+    </div>
+
+    <div class="actions">
+        <button type="submit" class="primary-button">Logg inn</button>
+        <a asp-page="/Index" class="secondary-link">Tilbake</a>
+    </div>
+</form>
+
+<script id="organizations-data" type="application/json">@Html.Raw(Model.OrganizationsJson)</script>
+<script id="initial-state" type="application/json">@Html.Raw(Model.InitialStateJson)</script>
+
+@section Scripts {
+    <script>
+        (() => {
+            const organizations = JSON.parse(document.getElementById("organizations-data").textContent || "[]");
+            const initialState = JSON.parse(document.getElementById("initial-state").textContent || "{}");
+            const organizationSelect = document.getElementById("organization-select");
+            const personSelect = document.getElementById("person-select");
+            const personUidInput = document.getElementById("person-uid");
+            const personName = document.getElementById("person-name");
+            const personEmail = document.getElementById("person-email");
+            const personId = document.getElementById("person-id");
+
+            const state = {
+                organization: initialState.organizationName || null,
+                personUid: initialState.personUid || null
+            };
+
+            function fillSelect(select, items, getValue, getText) {
+                select.innerHTML = "";
+
+                for (const item of items) {
+                    const option = document.createElement("option");
+                    option.value = getValue(item);
+                    option.textContent = getText(item);
+                    select.appendChild(option);
+                }
+            }
+
+            function currentOrganization() {
+                return organizations.find(organization => organization.name === state.organization) || null;
+            }
+
+            function currentPerson() {
+                return currentOrganization()?.persons?.find(person => String(person.personUid) === state.personUid) || null;
+            }
+
+            function syncPersonSummary() {
+                const person = currentPerson();
+                personUidInput.value = person?.personUid || "";
+                personName.textContent = person?.name || "Ingen person valgt";
+                personEmail.textContent = person?.email || "Velg en person fra listen.";
+                personId.textContent = person?.personUid || "";
+            }
+
+            function refreshPersons() {
+                const persons = currentOrganization()?.persons || [];
+                fillSelect(personSelect, persons, person => person.personUid, person => person.name);
+
+                const availablePersonUid = persons.some(person => String(person.personUid) === state.personUid)
+                    ? state.personUid
+                    : (persons[0] ? String(persons[0].personUid) : null);
+
+                state.personUid = availablePersonUid;
+                personSelect.value = availablePersonUid || "";
+                syncPersonSummary();
+            }
+
+            organizationSelect.addEventListener("change", () => {
+                state.organization = organizationSelect.value;
+                refreshPersons();
+            });
+
+            personSelect.addEventListener("change", () => {
+                state.personUid = personSelect.value;
+                syncPersonSummary();
+            });
+
+            fillSelect(organizationSelect, organizations, organization => organization.name, organization => organization.name);
+
+            if (!organizations.length) {
+                syncPersonSummary();
+                return;
+            }
+
+            if (!organizations.some(organization => organization.name === state.organization)) {
+                state.organization = organizations[0].name;
+            }
+
+            organizationSelect.value = state.organization || "";
+            refreshPersons();
+        })();
+    </script>
+}

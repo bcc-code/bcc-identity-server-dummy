@@ -1,0 +1,16 @@
+- main [ref=e2]:
+  - generic [ref=e3]:
+    - img "BCC" [ref=e4]
+    - generic [ref=e5]:
+      - paragraph [ref=e6]: OIDC Mock
+      - heading "Logg ut" [level=1] [ref=e7]
+      - paragraph [ref=e8]: Avslutt den aktive testøkten og send brukeren tilbake til applikasjonen.
+    - generic [ref=e9]:
+      - generic [ref=e10]:
+        - heading "Du er logget ut" [level=2] [ref=e11]
+        - paragraph [ref=e12]: Innloggingen er avsluttet for denne mock-sessionen.
+      - paragraph [ref=e13]:
+        - text: Klikk
+        - link "her" [ref=e14] [cursor=pointer]:
+          - /url: https://localhost:15000
+        - text: for å returnere til applikasjonen.

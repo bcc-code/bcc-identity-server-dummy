@@ -1,0 +1,13 @@
+- main [ref=e2]:
+  - generic [ref=e3]:
+    - img "BCC" [ref=e4]
+    - heading "Velkommen til BCC Auth Mock" [level=1] [ref=e6]
+    - navigation [ref=e7]:
+      - link "Discovery document" [ref=e8] [cursor=pointer]:
+        - /url: /.well-known/openid-configuration
+      - link "Logg inn" [ref=e9] [cursor=pointer]:
+        - /url: /login
+      - link "Logg ut" [ref=e10] [cursor=pointer]:
+        - /url: /logout
+      - link "Diagnostics" [ref=e11] [cursor=pointer]:
+        - /url: /spa/diagnostics

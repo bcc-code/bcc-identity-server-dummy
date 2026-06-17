@@ -1,0 +1,36 @@
+@page "/logout"
+@model Bcc.Identity.Mock.Pages.LogoutModel
+@{
+    ViewData["Title"] = "Logg ut";
+}
+
+<div class="card-header">
+    <p class="eyebrow">OIDC Mock</p>
+    <h1>Logg ut</h1>
+    <p class="lede">Avslutt den aktive testøkten og send brukeren tilbake til applikasjonen.</p>
+</div>
+
+@if (Model.ShowPrompt)
+{
+    <form method="post" class="form-stack narrow-stack">
+        <input asp-for="LogoutId" type="hidden" />
+        <p>Vil du logge ut av BCC Auth Mock?</p>
+        <div class="actions">
+            <button type="submit" class="primary-button">Logg ut</button>
+            <a asp-page="/Index" class="secondary-link">Avbryt</a>
+        </div>
+    </form>
+}
+else
+{
+    <div class="result-stack">
+        <div class="status-card success-state">
+            <h2>Du er logget ut</h2>
+            <p>Innloggingen er avsluttet for denne mock-sessionen.</p>
+        </div>
+
+        <p>
+            Klikk <a href="@Model.PostLogoutRedirectUri">her</a> for å returnere til applikasjonen.
+        </p>
+    </div>
+}

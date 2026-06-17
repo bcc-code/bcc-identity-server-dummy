@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - BCC Auth Mock</title>
+    <link rel="icon" type="image/x-icon" href="~/favicon.ico" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <main class="app-shell">
+        <section class="page-card">
+            <div class="brand-mark">
+                <img src="~/bg.png" alt="BCC" class="brand-image" />
+            </div>
+            @RenderBody()
+        </section>
+    </main>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

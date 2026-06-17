@@ -1,0 +1,60 @@
+- main [ref=e2]:
+  - generic [ref=e3]:
+    - img "BCC" [ref=e4]
+    - generic [ref=e5]:
+      - heading "BCC Test-innlogging" [level=1] [ref=e6]
+      - paragraph [ref=e7]: Velg organisasjon og person for å starte en mock OIDC-session.
+    - generic [ref=e8]:
+      - generic [ref=e9]:
+        - generic [ref=e10]:
+          - generic [ref=e11]: Velg organisasjon
+          - listbox "Velg organisasjon" [ref=e12]:
+            - option [ref=e13]
+            - option [ref=e14]
+            - option [ref=e15]
+            - option [ref=e16]
+            - option [ref=e17]
+            - option [ref=e18]
+            - option [ref=e19]
+            - option [ref=e20]
+            - option [ref=e21]
+            - option [ref=e22]
+            - option [ref=e23]
+            - option [ref=e24]
+            - option [ref=e25]
+            - option [ref=e26]
+            - option [ref=e27]
+            - option [ref=e28]
+            - option [ref=e29]
+            - option [ref=e30]
+            - option [ref=e31]
+            - option [ref=e32]
+            - option [ref=e33]
+            - option [ref=e34]
+            - option [ref=e35]
+            - option [ref=e36]
+            - option [ref=e37]
+            - option [ref=e38]
+            - option [ref=e39]
+            - option [ref=e40]
+            - option [ref=e41]
+            - option [ref=e42]
+            - option [ref=e43]
+            - option [ref=e44]
+            - option [ref=e45]
+            - option [ref=e46]
+            - option [ref=e47]
+            - option [ref=e48]
+            - option [ref=e49]
+            - option [ref=e50]
+        - generic [ref=e51]:
+          - generic [ref=e52]: Velg person
+          - listbox "Velg person" [ref=e53]
+      - generic [ref=e55]:
+        - heading "Ingen person valgt" [level=2] [ref=e56]
+        - paragraph [ref=e57]: Velg en person fra listen.
+        - paragraph
+      - generic [ref=e58]:
+        - button "Logg inn" [ref=e59] [cursor=pointer]
+        - link "Tilbake" [ref=e60] [cursor=pointer]:
+          - /url: /

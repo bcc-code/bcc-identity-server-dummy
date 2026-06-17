@@ -1,9 +1,11 @@
-﻿using System.Security.Claims;
-using Duende.IdentityModel;
-using Duende.IdentityServer;
-using Duende.IdentityServer.Extensions;
-using Duende.IdentityServer.Services;
+using System.Security.Claims;
+using System.Text.Json;
+using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using OpenIddict.Abstractions;
+using OpenIddict.Server.AspNetCore;
+using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace Bcc.Identity.Mock;
 
@@ -11,141 +13,165 @@ public static class OidcEndpoints
 {
     public static void MapOidcEndpoints(this WebApplication app)
     {
-        var oidc = app.MapGroup("spa");
+        app.MapMethods("/connect/authorize", ["GET", "POST"], (Delegate)AuthorizeAsync);
+        app.MapPost("/connect/token", (Delegate)ExchangeAsync);
+        app.MapMethods("/connect/userinfo", ["GET", "POST"], (Delegate)UserInfoAsync);
+        app.MapMethods("/connect/endsession", ["GET", "POST"], (Delegate)EndSessionAsync);
 
-        oidc.MapGet("context", Context);
-        oidc.MapPost("login", Login);
-        oidc.MapGet("error", Error);
-        oidc.MapGet("logout", Logout);
-        oidc.MapPost("logout", PostLogout);
-        oidc.MapGet("diagnostics", async (HttpContext context) =>
+        app.MapGet("spa/diagnostics", async (HttpContext context) =>
         {
-            var diagnostics = await Diagnostics(context);
-            return diagnostics;
+            var result = await context.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            return Results.Ok(new DiagnosticsDto(result));
         });
     }
 
-    public static async Task<IResult> Context(string returnUrl, IIdentityServerInteractionService interaction)
+    private static async Task<IResult> AuthorizeAsync(HttpContext ctx)
     {
-        var authzContext = await interaction.GetAuthorizationContextAsync(returnUrl);
-        if (authzContext != null)
+        var request = ctx.GetOpenIddictServerRequest()
+            ?? throw new InvalidOperationException("The OpenIddict server request cannot be retrieved.");
+
+        var cookie = await ctx.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+        if (!cookie.Succeeded)
         {
-            return Results.Ok(new
-            {
-                loginHint = authzContext.LoginHint,
-                idp = authzContext.IdP,
-                tenant = authzContext.Tenant,
-                scopes = authzContext.ValidatedResources.RawScopeValues,
-                client = authzContext.Client.ClientName ?? authzContext.Client.ClientId
-            });
+            // Not logged in — redirect to login page, preserving the full authorize URL as the return URL
+            var returnUrl = ctx.Request.PathBase + ctx.Request.Path
+                + QueryString.Create(ctx.Request.Query.ToList());
+            return Results.Challenge(
+                new AuthenticationProperties { RedirectUri = returnUrl },
+                [CookieAuthenticationDefaults.AuthenticationScheme]);
         }
 
-        return Results.BadRequest();
+        var identity = new ClaimsIdentity(
+            authenticationType: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
+            nameType: Claims.Name,
+            roleType: Claims.Role);
+
+        var sub = cookie.Principal!.FindFirstValue(Claims.Subject)
+                  ?? cookie.Principal.FindFirstValue(ClaimTypes.NameIdentifier)
+                  ?? throw new InvalidOperationException("No subject claim found in the session.");
+
+        identity.AddClaim(new System.Security.Claims.Claim(Claims.Subject, sub)
+            .SetDestinations(Destinations.AccessToken, Destinations.IdentityToken));
+
+        // Forward all other cookie claims into the token (mirrors JustAddAllClaimsProfileService)
+        foreach (var claim in cookie.Principal.Claims
+            .Where(c => c.Type != Claims.Subject && c.Type != ClaimTypes.NameIdentifier))
+        {
+            identity.AddClaim(claim.SetDestinations(Destinations.AccessToken, Destinations.IdentityToken));
+        }
+
+        var principal = new ClaimsPrincipal(identity);
+        ApplyScopes(principal, request.GetScopes());
+
+        return Results.SignIn(principal, null, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
     }
 
-    public static async Task<IResult> Login(LoginRequest model, IIdentityServerInteractionService interaction,
-        IServerUrls serverUrls, HttpContext context)
+    private static async Task<IResult> ExchangeAsync(HttpContext ctx)
     {
-        var response = new LoginResponse();
+        var request = ctx.GetOpenIddictServerRequest();
 
-        var url = model.ReturnUrl != null ? Uri.UnescapeDataString(model.ReturnUrl) : null;
-        
-        var authzContext = await interaction.GetAuthorizationContextAsync(url);
-        response.ValidReturnUrl = authzContext != null ? url : serverUrls.BaseUrl;
+        if (request is null)
+            throw new InvalidOperationException("The OpenIddict server request cannot be retrieved.");
 
-        var user = new IdentityServerUser(model.PersonUid)
+        if (request.IsClientCredentialsGrantType())
         {
-            DisplayName = model.Name,
-            AdditionalClaims = new List<Claim>()
+            var clientId = request.ClientId
+                ?? throw new InvalidOperationException("The client identifier cannot be retrieved.");
+
+            var identity = new ClaimsIdentity(
+                authenticationType: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
+                nameType: Claims.Name,
+                roleType: Claims.Role);
+
+            identity.AddClaim(new System.Security.Claims.Claim(Claims.Subject, clientId)
+                .SetDestinations(Destinations.AccessToken));
+            identity.AddClaim(new System.Security.Claims.Claim(Claims.Name, clientId)
+                .SetDestinations(Destinations.AccessToken));
+            identity.AddClaim(new System.Security.Claims.Claim(Claims.ClientId, clientId)
+                .SetDestinations(Destinations.AccessToken));
+
+            var principal = new ClaimsPrincipal(identity);
+            ApplyScopes(principal, request.GetScopes());
+
+            return Results.SignIn(principal, null, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+        }
+
+        if (request.IsAuthorizationCodeGrantType() || request.IsRefreshTokenGrantType())
+        {
+            var result = await ctx.AuthenticateAsync(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+            if (!result.Succeeded || result.Principal is null)
             {
-                new(JwtClaimTypes.Name, model.Name),
-                new(JwtClaimTypes.Email, model.Email),
-                new("https://login.bcc.no/claims/personUid", model.PersonUid)
+                return Results.Forbid(
+                    CreateErrorProperties(Errors.InvalidGrant, "The token request is no longer valid."),
+                    [OpenIddictServerAspNetCoreDefaults.AuthenticationScheme]);
             }
-        };
 
-        var props = new AuthenticationProperties()
-        {
-            IsPersistent = true,
-            ExpiresUtc = DateTimeOffset.UtcNow.Add(TimeSpan.FromDays(7))
-        };
-        await context.SignInAsync(user, props);
-        
-        return Results.Ok(response);
-    }
+            var identity = new ClaimsIdentity(
+                result.Principal.Claims,
+                authenticationType: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
+                nameType: Claims.Name,
+                roleType: Claims.Role);
 
-    public static async Task<IResult> Error(string errorId, IIdentityServerInteractionService interaction)
-    {
-        var error = await interaction.GetErrorContextAsync(errorId);
-        if (error != null)
-        {
-            return Results.Ok(new
-            {
-                error.Error,
-                error.ErrorDescription
-            });
+            var principal = new ClaimsPrincipal(identity);
+            ApplyScopes(principal, result.Principal.GetScopes());
+
+            return Results.SignIn(principal, null, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
         }
 
-        return Results.BadRequest();
+        return Results.Forbid(
+            CreateErrorProperties(Errors.UnsupportedGrantType, "The specified grant type is not supported."),
+            [OpenIddictServerAspNetCoreDefaults.AuthenticationScheme]);
     }
-    
-    public static async Task<IResult> PostLogout(string logoutId, IIdentityServerInteractionService interaction, HttpContext context)
+
+    private static async Task<IResult> UserInfoAsync(HttpContext ctx)
     {
-        var logoutInfo = await interaction.GetLogoutContextAsync(logoutId);
-
-        await context.SignOutAsync();
-
-        return Results.Ok(new
+        var result = await ctx.AuthenticateAsync(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+        if (!result.Succeeded || result.Principal is null)
         {
-            postLogoutRedirectUri = logoutInfo?.PostLogoutRedirectUri
+            return Results.Forbid(
+                CreateErrorProperties(Errors.InvalidToken, "The access token is not valid."),
+                [OpenIddictServerAspNetCoreDefaults.AuthenticationScheme]);
+        }
+
+        var payload = result.Principal.Claims
+            .Where(claim => !claim.Type.StartsWith("oi_", StringComparison.Ordinal))
+            .GroupBy(claim => claim.Type, StringComparer.Ordinal)
+            .ToDictionary(
+                group => group.Key,
+                group => group.Count() == 1
+                    ? (object)group.First().Value
+                    : group.Select(claim => claim.Value).ToArray(),
+                StringComparer.Ordinal);
+
+        return Results.Text(JsonSerializer.Serialize(payload), "application/json");
+    }
+
+    private static IResult EndSessionAsync(HttpContext ctx, LogoutContextStore logoutContextStore)
+    {
+        var request = ctx.GetOpenIddictServerRequest();
+        var logoutId = logoutContextStore.Store(request?.PostLogoutRedirectUri);
+        return Results.Redirect($"/logout?logoutId={Uri.EscapeDataString(logoutId)}");
+    }
+
+    private static void ApplyScopes(ClaimsPrincipal principal, IEnumerable<string> scopes)
+    {
+        var grantedScopes = scopes
+            .Where(scope => !string.IsNullOrWhiteSpace(scope))
+            .Distinct(StringComparer.Ordinal)
+            .ToArray();
+
+        principal.SetScopes(grantedScopes);
+        principal.SetResources(
+            grantedScopes.Where(scope => !OpenIddictMockConfiguration.IsProtocolScope(scope)));
+    }
+
+    private static AuthenticationProperties CreateErrorProperties(string error, string description) =>
+        new(new Dictionary<string, string?>
+        {
+            [OpenIddictServerAspNetCoreConstants.Properties.Error] = error,
+            [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] = description
         });
-    }
-
-    
-    private static async Task<IResult> Logout(string? logoutId, IIdentityServerInteractionService interaction, HttpContext context)
-    {
-        try
-        {
-            var logoutInfo = await interaction.GetLogoutContextAsync(logoutId);
-
-            if (context.User.IsAuthenticated())
-            {
-                await context.SignOutAsync();
-
-                return Results.Ok(new
-                {
-                    postLogoutRedirectUri = logoutInfo.PostLogoutRedirectUri ?? "https://localhost:13000",
-                });
-            }
-        }
-        catch (Exception)
-        {
-            // ignored
-        }
-
-        return Results.Ok(new
-        {
-            prompt = context.User.IsAuthenticated()
-        });
-    }
-
-    private static async Task<DiagnosticsDto> Diagnostics(HttpContext context)
-    {
-        return new DiagnosticsDto(await context.AuthenticateAsync());
-    }
-}
-
-public class LoginRequest
-{
-    public required string Email { get; set; }
-    public required string PersonUid { get; set; }
-    public required string Name { get; set; }
-    public string? ReturnUrl { get; set; }
-}
-
-public class LoginResponse
-{
-    public string? ValidReturnUrl { get; set; }
 }
 
 public class DiagnosticsDto
@@ -159,10 +185,7 @@ public class DiagnosticsDto
     }
 
     public AuthenticationProperties? Properties { get; set; }
-
     public IEnumerable<string>? Claims { get; set; }
-
     public Exception? Failure { get; set; }
-
     public bool Authenticated { get; set; }
 }

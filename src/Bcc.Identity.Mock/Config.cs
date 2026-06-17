@@ -1,72 +1,42 @@
-﻿using Duende.IdentityModel;
-using Duende.IdentityServer.Models;
-
 namespace Bcc.Identity.Mock;
 
-public static class Config
+using static OpenIddict.Abstractions.OpenIddictConstants;
+
+public static class OpenIddictMockConfiguration
 {
-    public static IEnumerable<IdentityResource> IdentityResources(IConfiguration configuration)
-    {
-        yield return  new IdentityResources.OpenId();
-        yield return  new IdentityResources.Profile();
-        yield return  new IdentityResources.Email();
+    private static readonly HashSet<string> ProtocolScopes =
+    [
+        Scopes.OpenId,
+        Scopes.Profile,
+        Scopes.Email,
+        Scopes.Address,
+        Scopes.Phone,
+        Scopes.OfflineAccess
+    ];
 
-        var identityResources = configuration.GetSection("IdentityResources").GetChildren();
-        foreach (var section in identityResources)
-        {
-            var identityResourceSettings = section.Get<IdentityResourceSettings>()!;
-            yield return new IdentityResource(identityResourceSettings.Name, identityResourceSettings.Claims);
-        }
-    }
+    public static string[] GetRegisteredScopes(IConfiguration configuration) =>
+        GetConfiguredScopes(configuration)
+            .Concat(ProtocolScopes)
+            .Distinct(StringComparer.Ordinal)
+            .ToArray();
 
-    public static IEnumerable<ApiScope> ApiScopes(IConfiguration configuration)
-    {
-        var apiScopes = configuration.GetSection("ApiScopes").GetChildren();
+    public static IEnumerable<string> GetConfiguredScopes(IConfiguration configuration) =>
+        configuration.GetSection("ApiScopes").GetChildren()
+            .Select(section => section.Get<ApiScopeSettings>()!.Name)
+            .Concat(GetClientScopes(configuration))
+            .Distinct(StringComparer.Ordinal);
 
-        foreach (var section in apiScopes)
-        {
-            var apiScopeSettings = section.Get<ApiScopeSettings>()!;
-            yield return new ApiScope(apiScopeSettings.Name, apiScopeSettings.Claims);
-        }
-    }
+    public static IEnumerable<string> GetClientScopes(IConfiguration configuration) =>
+        configuration.GetSection("Client").GetChildren()
+            .SelectMany(section => section.Get<ClientSettings>()?.Scopes ?? []);
 
-    public static IEnumerable<Client> Clients(IConfiguration configuration)
-    {
-        var clients = configuration.GetSection("Client").GetChildren();
-
-        foreach (var section in clients)
-        {
-            var clientSettings = section.Get<ClientSettings>()!;
-            yield return new Client
-            {
-                ClientId = clientSettings.ClientId,
-                ClientSecrets =
-                [
-                    new Secret(clientSettings.Secret.Sha256())
-                ],
-                RedirectUris = clientSettings.RedirectUris,
-                PostLogoutRedirectUris = clientSettings.RedirectUris,
-                AllowOfflineAccess = true,
-                AllowedScopes = clientSettings.Scopes,
-                AllowedGrantTypes = clientSettings.GrantTypes,
-                AlwaysIncludeUserClaimsInIdToken = true
-            };
-        }
-    }
-}
-
-public class IdentityResourceSettings
-{
-    public required string Name { get; set; }
-    public string[] Claims { get; set; } = [];
+    public static bool IsProtocolScope(string scope) => ProtocolScopes.Contains(scope);
 }
 
 public class ApiScopeSettings
 {
     public required string Name { get; set; }
-
-    public string[] Claims { get; set; } =
-        [OidcConstants.StandardScopes.Email, OidcConstants.StandardScopes.OpenId, OidcConstants.StandardScopes.Profile];
+    public string[] Claims { get; set; } = ["email", "openid", "profile"];
 }
 
 public class ClientSettings
@@ -75,5 +45,5 @@ public class ClientSettings
     public required string ClientId { get; set; }
     public string[] RedirectUris { get; set; } = [];
     public string[] Scopes { get; set; } = [];
-    public string[] GrantTypes { get; set; } = [..Duende.IdentityServer.Models.GrantTypes.CodeAndClientCredentials];
+    public string[] GrantTypes { get; set; } = ["authorization_code", "client_credentials"];
 }

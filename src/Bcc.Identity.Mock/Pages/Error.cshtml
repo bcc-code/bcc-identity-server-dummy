@@ -1,0 +1,20 @@
+@page "/error"
+@model Bcc.Identity.Mock.Pages.ErrorModel
+@{
+    ViewData["Title"] = "Feil";
+}
+
+<div class="card-header">
+    <p class="eyebrow">OIDC Mock</p>
+    <h1>Feilmelding</h1>
+    <p class="lede">OIDC-forespørselen kunne ikke fullføres.</p>
+</div>
+
+<div class="status-card error-state">
+    <h2>@Model.Error</h2>
+    <p>@Model.ErrorDescription</p>
+</div>
+
+<div class="actions">
+    <a asp-page="/Index" class="secondary-link">Tilbake til forsiden</a>
+</div>
