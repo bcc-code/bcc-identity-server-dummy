@@ -2,6 +2,8 @@
 
 This repository contains a small ASP.NET Core OpenIddict-based mock identity server used for local development and integration testing.
 
+Developer-facing usage guides for internal portal publishing are available in [`docs/`](./docs/README.md).
+
 ## What it provides
 
 - OIDC endpoints at `/connect/authorize`, `/connect/token`, `/connect/userinfo`, and `/connect/endsession`
