@@ -57,7 +57,10 @@ jobs:
         run: |
           dotnet publish "${{ env.PROJECT_PATH }}" \
             --configuration Release \
+            --os linux \
+            --arch x64 \
             /t:PublishContainer \
+            -p:PublishReadyToRun=true \
             -p:ContainerRegistry=${{ env.REGISTRY }} \
             -p:ContainerRepository=${{ steps.meta.outputs.image_name }} \
             -p:ContainerImageTags="${{ steps.meta.outputs.tags }}"
